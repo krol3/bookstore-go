@@ -1,30 +1,137 @@
-name: GH Actions DemoWorkflow-01
-run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
-on: 
-  push: 
+name: build
+run-name: ${{ github.actor }} Pipeline Demo - GH 🚀
+permissions: read-all
+env:
+  VM: ubuntu-20.04
+
+on:
+  push:
+    branches: [main, ci-v*]
+  pull_request:
+    branches: ["*"]
   workflow_dispatch:
+
 jobs:
-  Explore-gh-action-job:
+  Linter-Go:
+    name: Code-Quality-Go
     runs-on: ubuntu-20.04
+    defaults:
+      run:
+        shell: sh    # By default sh, using bash for compatibility with Make
+    timeout-minutes: 5
+    strategy:
+      fail-fast: true
+      matrix:
+        go: ['>=1.17.0'] #['stable', 'oldstable', 1.20]
+
     steps:
-      - run: echo `👀 🎉 The job was automatically triggered by a "${{ github.event_name }}" event.`
-      - run: echo "👀 🐧 This job is now running on a ${{ runner.name }} server hosted by GitHub!"
-      - run: echo "👀 🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
-
-      - name: Check out repository code
+      - name: Check out code
         uses: actions/checkout@v3
-      - run: echo "👀 💡 The ${{ github.repository }} repository has been cloned to the runner."
 
-      - name: List files in the repository
-        run: |
-          echo "Hello"
-          ls ${{ github.workspace }}
-          time=$(date)
-          echo "::set-output name=time::$time"
-      - run: echo "👀 🍏 This job's status is ${{ job.status }}."
+      - name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ matrix.go }}
+          check-latest: true
+      - run: go version
 
-      - name: Save state
-        run: echo "{name}={value}" >> $GITHUB_STATE
-      
-      - name: Set output
-        run: echo "{name}={value}" >> $GITHUB_OUTPUT      
+      - name: Formating Code 
+        run: gofmt -s -w . && git diff --exit-code #make format     
+
+      - name: Linter 
+        continue-on-error: true
+        run: go vet ./... #make vet
+
+      - name: Go Tidy
+        run: go mod tidy && git diff --exit-code go.mod 
+
+      - name: Go Mod
+        run: go mod download
+
+      - name: Go Mod Verify
+        run: go mod verify
+
+      - name: Go Generate
+        run: go generate ./... && git diff --exit-code
+
+      - name: Go Build
+        run: go build -o /dev/null ./...
+
+      - name: Go Compile Tests
+        if: ${{ inputs.skipTests }}
+        run: go test -exec /bin/true ./...
+
+      - name: Go Test
+        if: ${{ !inputs.skipTests }}
+        run: go test -v -count=1 -race -shuffle=on -coverprofile=coverage.txt ./...
+
+      - name: Go Benchmark
+        if: ${{ !inputs.skipTests }}
+        run: go test -v -shuffle=on -run=- -bench=. -benchtime=1x ./...
+
+      - name: Upload Coverage
+        if: ${{ !inputs.skipTests }}
+        uses: codecov/codecov-action@v3
+        continue-on-error: true
+        with:
+          token: ${{secrets.CODECOV_TOKEN}}
+          file: ./coverage.txt
+          fail_ci_if_error: false
+
+  CodeQL-Build:
+    runs-on: ubuntu-20.04
+
+    permissions:
+      security-events: write
+      # only required for workflows in private repositories
+      actions: read
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Initializes the CodeQL tools for scanning.
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        # Override language selection by uncommenting this and choosing your languages
+        # with:
+        #   languages: go, javascript, csharp, python, cpp, java, ruby
+
+      # Autobuild attempts to build any compiled languages (C/C++, C#, Go, or Java).
+      # If this step fails, then you should remove it and run the build manually (see below).
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v2
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+
+  sca:
+    name: "SCA Analyze with Trivy"
+    runs-on: "ubuntu-20.04"
+    steps:
+      - uses: "actions/checkout@v3"
+      - name: "Run Trivy vulnerability scanner"
+        uses: "aquasecurity/trivy-action@master"
+        with:
+          scan-type: "fs"
+          ignore-unfixed: true
+          format: "table"
+          severity: "CRITICAL"
+          image-ref:
+
+  build-code:
+    name: Build-Go-Code
+    runs-on: ubuntu-20.04
+    defaults:
+      run:
+        shell: sh    # By default sh, using bash for compatibility with Make
+    timeout-minutes: 5
+    strategy:
+      fail-fast: true
+      matrix:
+        go: ['>=1.17.0'] #['stable', 'oldstable', 1.20]
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3

@@ -7,3 +7,16 @@ test-coverage:
 
 run: 
 	go run main.go
+
+format:
+	gofmt -s -w . && git diff --exit-code
+
+vet:
+	go vet ./...
+
+ci:
+	act -P ubuntu-20.04=ghcr.io/catthehacker/ubuntu:act-20.04
+
+go-mod:
+	go mod download
+	go mod verify
