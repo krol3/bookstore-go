@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  Linter-Go:
+  Linter:
     name: Code-Quality-Go
     runs-on: ubuntu-20.04
     defaults:
@@ -42,6 +42,14 @@ jobs:
         continue-on-error: true
         run: go vet ./... #make vet
 
+  Dependencies:
+    name: "Check dependencies"
+    runs-on: "ubuntu-20.04"
+    strategy:
+      fail-fast: true
+      matrix:
+        go: ['>=1.17.0'] #['stable', 'oldstable', 1.20]    
+    steps:
       - name: Go Tidy
         run: go mod tidy && git diff --exit-code go.mod 
 
@@ -54,12 +62,23 @@ jobs:
       - name: Go Generate
         run: go generate ./... && git diff --exit-code
 
+  Build-Test:
+    name: Build-Test-Code
+    runs-on: ubuntu-20.04
+    defaults:
+      run:
+        shell: sh    # By default sh, using bash for compatibility with Make
+    timeout-minutes: 5
+    strategy:
+      fail-fast: true
+      matrix:
+        go: ['>=1.20.4','stable', 'oldstable']
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
       - name: Go Build
         run: go build -o /dev/null ./...
-
-      - name: Go Compile Tests
-        if: ${{ inputs.skipTests }}
-        run: go test -exec /bin/true ./...
 
       - name: Go Test
         if: ${{ !inputs.skipTests }}
@@ -76,11 +95,10 @@ jobs:
         with:
           token: ${{secrets.CODECOV_TOKEN}}
           file: ./coverage.txt
-          fail_ci_if_error: false
+          fail_ci_if_error: false        
 
   CodeQL-Build:
     runs-on: ubuntu-20.04
-
     permissions:
       security-events: write
       # only required for workflows in private repositories
@@ -90,24 +108,17 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-
-      # Initializes the CodeQL tools for scanning.
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v2
-        # Override language selection by uncommenting this and choosing your languages
-        # with:
-        #   languages: go, javascript, csharp, python, cpp, java, ruby
-
-      # Autobuild attempts to build any compiled languages (C/C++, C#, Go, or Java).
-      # If this step fails, then you should remove it and run the build manually (see below).
+        with:
+          languages: go, javascript
       - name: Autobuild
         uses: github/codeql-action/autobuild@v2
-
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
 
-  sca:
-    name: "SCA Analyze with Trivy"
+  Vulnerability-Scanning:
+    name: "Vulnerability Scanning in Go"
     runs-on: "ubuntu-20.04"
     steps:
       - uses: "actions/checkout@v3"
@@ -119,19 +130,3 @@ jobs:
           format: "table"
           severity: "CRITICAL"
           image-ref:
-
-  build-code:
-    name: Build-Go-Code
-    runs-on: ubuntu-20.04
-    defaults:
-      run:
-        shell: sh    # By default sh, using bash for compatibility with Make
-    timeout-minutes: 5
-    strategy:
-      fail-fast: true
-      matrix:
-        go: ['>=1.17.0'] #['stable', 'oldstable', 1.20]
-
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v3

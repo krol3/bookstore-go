@@ -20,3 +20,6 @@ ci:
 go-mod:
 	go mod download
 	go mod verify
+
+vulns:
+	govulncheck ./...

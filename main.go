@@ -13,7 +13,7 @@ func main() {
 		{Title: "One Hundred Years of Good Company"},
 	}
 
-	fmt.Printf("Books length: %s \n", len(books))
+	//fmt.Printf("Books length: %s \n", len(books))
 
 	b := bookstore.Book{Title: "The Grapes of Mild Irritation"}
 	books = append(books, b)
