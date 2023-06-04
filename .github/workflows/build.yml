@@ -1,4 +1,4 @@
-name: build
+name: Build
 run-name: ${{ github.actor }} Pipeline Demo - GH 🚀
 permissions: read-all
 env:
@@ -98,33 +98,6 @@ jobs:
           token: ${{secrets.CODECOV_TOKEN}}
           file: ./coverage.txt
           fail_ci_if_error: false        
-
-  CodeQL-Build:
-    runs-on: ubuntu-20.04
-    permissions:
-      security-events: write
-      # only required for workflows in private repositories
-      actions: read
-      contents: read
-    strategy:
-      fail-fast: false
-      matrix:
-        language: ["go"]
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v2
-        with:
-          languages: ${{ matrix.language }}
-          queries: security-extended,security-and-quality
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v2          
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
-        with:
-          category: "/language:${{matrix.language}}"
 
   Vulnerability-Scanning:
     name: "Vulnerability Scanning in Go"
