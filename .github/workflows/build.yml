@@ -50,6 +50,8 @@ jobs:
       matrix:
         go: ['>=1.17.0'] #['stable', 'oldstable', 1.20]    
     steps:
+      - name: Check out code
+        uses: actions/checkout@v3      
       - name: Go Tidy
         run: go mod tidy && git diff --exit-code go.mod 
 
@@ -104,6 +106,10 @@ jobs:
       # only required for workflows in private repositories
       actions: read
       contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ["ruby"]
 
     steps:
       - name: Checkout repository
@@ -111,11 +117,14 @@ jobs:
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v2
         with:
-          languages: go, javascript
+          languages: ${{ matrix.language }}
+          queries: security-extended,security-and-quality
       - name: Autobuild
-        uses: github/codeql-action/autobuild@v2
+        uses: github/codeql-action/autobuild@v2          
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
+        with:
+          category: "/language:${{matrix.language}}"
 
   Vulnerability-Scanning:
     name: "Vulnerability Scanning in Go"
