@@ -26,3 +26,12 @@ vulns:
 
 secrets:
 	gitleaks detect --source . -v --no-git
+
+semgrep:
+	semgrep --config=auto .
+
+gosec:
+	gosec  ./...
+
+chain-bench:
+	echo "Add chain bench"
