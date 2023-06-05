@@ -23,3 +23,7 @@ go-mod:
 
 vulns:
 	govulncheck ./...
+
+ci-job:
+	@echo $(arg)
+	@act -P ubuntu-20.04=ghcr.io/catthehacker/ubuntu:act-20.04 -j $(arg)

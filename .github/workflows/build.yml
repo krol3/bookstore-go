@@ -51,9 +51,14 @@ jobs:
         go: ['>=1.17.0'] #['stable', 'oldstable', 1.20]    
     steps:
       - name: Check out code
-        uses: actions/checkout@v3      
+        uses: actions/checkout@v3    
+      - name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ matrix.go }}
+          check-latest: true       
       - name: Go Tidy
-        run: go mod tidy && git diff --exit-code go.mod 
+        run: go mod tidy && git diff --exit-code go.mod
 
       - name: Go Mod
         run: go mod download
@@ -99,11 +104,24 @@ jobs:
           file: ./coverage.txt
           fail_ci_if_error: false        
 
+  Secret-Scanning:
+    name: "Secret Scanning"
+    runs-on: "ubuntu-20.04"
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   Vulnerability-Scanning:
     name: "Vulnerability Scanning in Go"
     runs-on: "ubuntu-20.04"
     steps:
-      - uses: "actions/checkout@v3"
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - name: "Run Trivy vulnerability scanner"
         uses: "aquasecurity/trivy-action@master"
         with:
@@ -112,3 +130,6 @@ jobs:
           format: "table"
           severity: "CRITICAL"
           image-ref:
+      - id: govulncheck
+        uses: golang/govulncheck-action@v0.1.0            
+
