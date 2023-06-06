@@ -1,0 +1,5 @@
+mode: atomic
+github.com/krol3/bookstore-go/bookstore/book.go:12.32,13.19 1 2
+github.com/krol3/bookstore-go/bookstore/book.go:13.19,15.3 1 1
+github.com/krol3/bookstore-go/bookstore/book.go:16.2,17.15 2 1
+github.com/krol3/bookstore-go/bookstore/book.go:20.41,22.2 1 0

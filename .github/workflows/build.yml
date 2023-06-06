@@ -13,7 +13,7 @@ on:
 
 jobs:
   Code-Quality:
-    name: Code quality and lintering in Go
+    name: Code quality
     runs-on: ubuntu-20.04
     defaults:
       run:
@@ -39,7 +39,7 @@ jobs:
         run: go vet ./... #make vet
 
   Testing:
-    name: Build-Test-Code
+    name: Testing code
     runs-on: ubuntu-20.04
     defaults:
       run:
@@ -71,7 +71,7 @@ jobs:
         run: echo "Integration Testing echo"
 
   Dependency-Check:
-    name: "Check dependencies in Go modules"
+    name: Check dependencies
     runs-on: "ubuntu-20.04"
     strategy:
       fail-fast: true
@@ -104,7 +104,7 @@ jobs:
           fail_ci_if_error: false        
 
   Secret-Scanning:
-    name: "Secret Scanning"
+    name: Secret scanning
     runs-on: "ubuntu-20.04"
     steps:
       - uses: actions/checkout@v3
@@ -116,7 +116,7 @@ jobs:
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE}}
 
   Vulnerability-Scanning:
-    name: "Vulnerability Scanning in Go"
+    name: Vulnerability scanning
     runs-on: "ubuntu-20.04"
     steps:
       - uses: actions/checkout@v3
@@ -134,7 +134,7 @@ jobs:
         uses: golang/govulncheck-action@v0.1.0            
 
   SAST:
-    name: Code scanning
+    name: SAST
     runs-on: ubuntu-latest
     steps:  
     - name: Check out code into the Go module directory
@@ -165,8 +165,15 @@ jobs:
             # Add the rules that Semgrep uses by setting the SEMGREP_RULES environment variable. 
             SEMGREP_RULES: p/default # more at semgrep.dev/explore
 
+  DAST:
+    name: DAST
+    runs-on: ubuntu-latest
+    steps:
+    - name: Dast demo
+      run: echo "DAST for the future"  
+
   Supply-Chain:
-    name: Supply security with chain-bench
+    name: Supply chain
     runs-on: ubuntu-latest
     steps:
     - name: Check out code into the Go module directory
