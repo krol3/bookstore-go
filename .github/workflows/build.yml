@@ -3,7 +3,6 @@ run-name: ${{ github.actor }} Pipeline AppSec Demo 🚀
 permissions: read-all
 env:
   VM: ubuntu-20.04
-
 on:
   push:
     branches: [main, ci-v*]
@@ -12,6 +11,7 @@ on:
   workflow_dispatch:
 
 jobs:
+
   Code-Quality:
     name: Code quality
     runs-on: ubuntu-20.04
@@ -70,6 +70,18 @@ jobs:
       - name: Integration Tests
         run: echo "Integration Testing echo"
 
+  Secret-Scanning:
+    name: Secret scanning
+    runs-on: "ubuntu-20.04"
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE}}
+
   Dependency-Check:
     name: Check dependencies
     runs-on: "ubuntu-20.04"
@@ -93,7 +105,6 @@ jobs:
         run: go mod verify
       - name: Go Generate
         run: go generate ./... && git diff --exit-code
-
       - name: Upload Coverage
         if: ${{ !inputs.skipTests }}
         uses: codecov/codecov-action@v3
@@ -102,18 +113,6 @@ jobs:
           token: ${{secrets.CODECOV_TOKEN}}
           file: ./coverage.txt
           fail_ci_if_error: false        
-
-  Secret-Scanning:
-    name: Secret scanning
-    runs-on: "ubuntu-20.04"
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      - uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE}}
 
   Vulnerability-Scanning:
     name: Vulnerability scanning
@@ -149,7 +148,7 @@ jobs:
       with:
         version: "2022.1"
       
-  Semgrep-SAST:
+  SAST-Semgrep:
     name: SAST with semgrep
     runs-on: ubuntu-20.04
     container:
