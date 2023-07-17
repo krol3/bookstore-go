@@ -25,7 +25,7 @@ vulns:
 	govulncheck ./...
 
 secrets:
-	gitleaks detect --source . -v --no-git
+	gitleaks detect --source . -v
 
 semgrep:
 	semgrep --config=auto .

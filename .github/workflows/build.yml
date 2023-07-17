@@ -31,13 +31,35 @@ jobs:
         with:
           go-version: ${{ matrix.go }}
           check-latest: true
-      - name: Package dependencies
-        run: go mod tidy && git diff --exit-code go.mod
       - name: Formating Code 
         run: gofmt -s -w . && git diff --exit-code #make format     
       - name: Linter 
         continue-on-error: true
         run: go vet ./... #make vet
+
+  Dependency-Check:
+    name: Check dependencies
+    runs-on: "ubuntu-20.04"
+    strategy:
+      fail-fast: true
+      matrix:
+        go: ['>=1.17.0'] #['stable', 'oldstable', 1.20]    
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3    
+      - name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ matrix.go }}
+          check-latest: true       
+      - name: Go Tidy
+        run: go mod tidy && git diff --exit-code go.mod
+      - name: Go Mod
+        run: go mod download
+      - name: Go Mod Verify
+        run: go mod verify
+      - name: Go Generate
+        run: go generate ./... && git diff --exit-code
 
   Testing:
     name: Testing code
@@ -70,6 +92,14 @@ jobs:
         run: echo "Integration Testing echo"        
       - name: Integration Tests
         run: echo "Integration Testing echo"
+      - name: Upload Coverage
+        if: ${{ !inputs.skipTests }}
+        uses: codecov/codecov-action@v3
+        continue-on-error: true
+        with:
+          token: ${{secrets.CODECOV_TOKEN}}
+          file: ./coverage.txt
+          fail_ci_if_error: false      
 
   Secret-Scanning:
     name: Secret scanning
@@ -82,39 +112,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE}}
-
-  Dependency-Check:
-    name: Check dependencies
-    runs-on: "ubuntu-20.04"
-    strategy:
-      fail-fast: true
-      matrix:
-        go: ['>=1.17.0'] #['stable', 'oldstable', 1.20]    
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v3    
-      - name: Install Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: ${{ matrix.go }}
-          check-latest: true       
-      - name: Go Tidy
-        run: go mod tidy && git diff --exit-code go.mod
-      - name: Go Mod
-        run: go mod download
-      - name: Go Mod Verify
-        run: go mod verify
-      - name: Go Generate
-        run: go generate ./... && git diff --exit-code
-      - name: Upload Coverage
-        if: ${{ !inputs.skipTests }}
-        uses: codecov/codecov-action@v3
-        continue-on-error: true
-        with:
-          token: ${{secrets.CODECOV_TOKEN}}
-          file: ./coverage.txt
-          fail_ci_if_error: false        
-
+  
   Vulnerability-Scanning:
     name: Vulnerability scanning
     runs-on: "ubuntu-20.04"
