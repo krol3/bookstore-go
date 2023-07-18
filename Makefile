@@ -35,3 +35,6 @@ gosec:
 
 chain-bench:
 	echo "Add chain bench"
+
+semgrep:
+	semgrep --config=auto .

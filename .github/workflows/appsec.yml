@@ -1,5 +1,5 @@
 name: Build
-run-name: ${{ github.actor }} Pipeline AppSec Demo 🚀
+run-name: AppSec Demo 🚀 by ${{ github.actor }}
 permissions: read-all
 env:
   VM: ubuntu-20.04
@@ -80,8 +80,6 @@ jobs:
         with:
           go-version: ${{ matrix.go }}
           check-latest: true            
-      - name: Go Build
-        run: go build -o /dev/null ./...
       - name: Go Test
         if: ${{ !inputs.skipTests }}
         run: go test -v -count=1 -race -shuffle=on -coverprofile=coverage.txt ./...
@@ -114,7 +112,7 @@ jobs:
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE}}
 
   Static-Analysis:
-    name: SAST with semgrep
+    name: Static-Analysis-Semgrep
     runs-on: ubuntu-20.04
     container:
       image: returntocorp/semgrep
@@ -130,17 +128,9 @@ jobs:
         env:
             # Add the rules that Semgrep uses by setting the SEMGREP_RULES environment variable. 
             SEMGREP_RULES: p/default # more at semgrep.dev/explore
-      - name: "Run Trivy vulnerability scanner"
-        uses: "aquasecurity/trivy-action@master"
-        with:
-          scan-type: "fs"
-          ignore-unfixed: true
-          format: "table"
-          severity: "CRITICAL"
-          image-ref:
 
   Static-Analysis-Go:
-    name: SAST
+    name: Static-Analysis-Go
     runs-on: ubuntu-latest
     steps:  
     - name: Check out code into the Go module directory
@@ -153,7 +143,7 @@ jobs:
       with:
         version: "2022.1"
     - name: govulncheck
-      uses: golang/govulncheck-action@v0.1.0      
+      uses: golang/govulncheck-action@v1      
           
   DAST:
     name: DAST
@@ -163,7 +153,7 @@ jobs:
       run: echo "DAST for the future"  
 
   Supply-Chain:
-    name: Supply chain
+    name: Supply-Chain
     runs-on: ubuntu-latest
     steps:
     - name: Check out code into the Go module directory
