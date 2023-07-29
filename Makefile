@@ -1,3 +1,5 @@
+default: run
+
 test:
 	go test -v ./...
 

@@ -1,5 +1,4 @@
-# bookstore-go
-Bookstore go sample
+# Bookstore go sample
 
 ## User stories
 
@@ -7,11 +6,7 @@ Bookstore go sample
 2. List all available books 
 3. See details of a book
 
-## Go Code Quality
-
-Install `go install github.com/mgechev/revive@latest`
-
-## Pipeline Test
+## Pipeline Local Test
 
 Using act with Github Action
 
@@ -22,4 +17,4 @@ Using act with Github Action
 
 Credids to [For the Love of Go (2023)](https://bitfieldconsulting.com/books/love) by bitfield consulting
 
-[Code Repository](https://github.com/bitfield/ftl-code)
+> [Code Repository here](https://github.com/bitfield/ftl-code)

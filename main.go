@@ -28,5 +28,5 @@ func main() {
 	}
 
 	val := os.Getenv("AWS_SECRET_ACCESS_KEY")
-	fmt.Println(val)
+	fmt.Printf("AWS_SECRET_ACCESS_KEY: %s", val)
 }
